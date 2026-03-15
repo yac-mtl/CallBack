@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("public_token");
+  const inst = params.get("institution_name");
+
+  // Redirection vers ton app MAUI
+  window.location = `drivepro://plaid-callback?public_token=${token}&institution=${inst}`;
+</script>
+</head>
+<body>
+Connexion à la banque...
+</body>
+</html>
