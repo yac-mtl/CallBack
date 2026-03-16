@@ -2,11 +2,51 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>DrivePro GitHub Pages</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Plaid - DrivePro</title>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f5f5f5; }
+        #status { padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+    </style>
 </head>
 <body>
-    <h1>Bienvenue sur la page de redirection Plaid</h1>
-    <p>Cette page sert uniquement à gérer la redirection pour l’authentification bancaire dans l’application DrivePro.</p>
-    <p>Ne modifiez pas le fichier <code>plaid-callback.html</code>.</p>
+
+    <div id="status">Initialisation de la connexion sécurisée...</div>
+
+    <script>
+        // 1. Récupérer le token depuis l'URL (?token=link-sandbox-xxx)
+        const urlParams = new URLSearchParams(window.location.search);
+        const linkToken = urlParams.get('token');
+
+        if (linkToken) {
+            console.log("Token détecté, lancement de Plaid...");
+            
+            const handler = Plaid.create({
+                token: linkToken,
+                onSuccess: (public_token, metadata) => {
+                    // 2. REDIRECTION VERS TON APP DRIVEPRO
+                    const institution = metadata.institution.name || "Banque";
+                    const deepLink = `drivepro://plaid-callback?public_token=${public_token}&institution_name=${encodeURIComponent(institution)}`;
+                    
+                    document.getElementById('status').innerText = "Succès ! Redirection en cours...";
+                    window.location.href = deepLink;
+                },
+                onLoad: () => {
+                    handler.open();
+                },
+                onExit: (err, metadata) => {
+                    if (err != null) {
+                        document.getElementById('status').innerText = "Erreur Plaid : " + err.display_message;
+                        console.error(err);
+                    } else {
+                        document.getElementById('status').innerText = "Connexion annulée.";
+                    }
+                }
+            });
+        } else {
+            document.getElementById('status').innerHTML = "<b style='color:red;'>Erreur :</b> Aucun jeton de connexion trouvé.";
+        }
+    </script>
 </body>
 </html>
